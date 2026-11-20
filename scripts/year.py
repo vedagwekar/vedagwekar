@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 """'the year, annotated' — contributions as a radial bloom, with ved's year marked on it."""
-import base64
 import datetime as dt
-import io
 import math
 from xml.sax.saxutils import escape
-from fontTools.ttLib import TTFont
-from fontTools import subset
 
 import json
 import os
@@ -34,18 +30,24 @@ def load_contributions():
     return dt.date.fromisoformat(start_s), [int(c) for c in cs.split()]
 
 
+sys.path.insert(0, HERE)
+import typo  # noqa: E402
+
 START, counts = load_contributions()
 N = len(counts)
 END = START + dt.timedelta(days=N - 1)
 TOTAL = sum(counts)
 
-W, H = 830, 490
-CX, CY = 580, 282
-R0 = 104
-MONO = "ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,'Liberation Mono',monospace"
-LM = os.path.join(ROOT, "assets", "fonts") + "/"
-SERIF_FILES = {"sr": "lmroman10-regular.otf", "si": "lmroman10-italic.otf"}
-serif_text = {k: set() for k in SERIF_FILES}
+W, H = 830, 470
+CX, CY = 590, 236
+R0 = 100
+DRAW = 3.6                      # seconds for the year to play back on load
+used = {"geist": set(), "geistmono": set()}
+
+
+def T(family, s):
+    used[family].update(s)
+    return escape(s)
 
 
 def ang(i):
@@ -60,58 +62,16 @@ def idx(d):
     return (d - START).days
 
 
-_lmf = TTFont(LM + "lmroman10-regular.otf")
-_cm, _hm, _upm = _lmf.getBestCmap(), _lmf["hmtx"], _lmf["head"].unitsPerEm
+def bar_len(c):
+    return 3 if c == 0 else 7 + 19 * math.log2(1 + c)
 
 
-def text_w(t, size):
-    return sum(_hm[_cm.get(ord(ch), _cm[ord("?")])][0] for ch in t) * size / _upm
-
-
-def serif(cls, text):
-    serif_text[cls].update(text)
-    return escape(text)
-
-
-def colour(c, mx):
-    t = math.log1p(c) / math.log1p(mx)
-    stops = [(0.0, (201, 176, 146)), (0.5, (230, 146, 66)), (1.0, (229, 72, 118))]
-    for (a, ca), (b, cb) in zip(stops, stops[1:]):
-        if t <= b:
-            u = (t - a) / (b - a)
-            return "#%02x%02x%02x" % tuple(round(ca[k] + (cb[k] - ca[k]) * u) for k in range(3))
-    return "#e54876"
-
-
-def arc_path(r, i0, i1):
-    a0, a1 = ang(i0), ang(i1)
-    x0, y0 = pt(r, a0)
-    x1, y1 = pt(r, a1)
-    large = 1 if (i1 - i0) / N > 0.5 else 0
-    return f"M {x0:.1f} {y0:.1f} A {r} {r} 0 {large} 1 {x1:.1f} {y1:.1f}"
-
-
-body, defs = [], []
-DRAW = 3.6  # seconds for the year to play back
-mx = max(counts)
-
-# ── the bloom ────────────────────────────────────────────────────
-for i, c in enumerate(counts):
-    a = ang(i)
-    ln = 3 if c == 0 else 8 + 20 * math.log2(1 + c)
-    x1, y1 = pt(R0, a)
-    x2, y2 = pt(R0 + ln, a)
-    b = f"{DRAW * i / N:.3f}s"
+def level(c, mx):
     if c == 0:
-        body.append(f'<line class="zero" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke-width=".9" '
-                    f'opacity="0"><animate attributeName="opacity" to="1" begin="{b}" dur=".3s" fill="freeze"/></line>')
-    else:
-        body.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{colour(c, mx)}" '
-                    f'stroke-width="{1.3 + min(c, 20) * .06:.2f}" stroke-linecap="round" '
-                    f'stroke-dasharray="{ln:.1f}" stroke-dashoffset="{ln:.1f}"><animate attributeName="stroke-dashoffset" '
-                    f'to="0" begin="{b}" dur=".5s" fill="freeze"/></line>')
+        return 0
+    return 1 + min(3, int(3.999 * math.log1p(c) / math.log1p(mx)))
 
-# ── annotations (callouts with elbow leaders) ────────────────────
+
 def load_events():
     """milestones come from events.txt, plus any open github issue labelled 'milestone'."""
     events = []
@@ -156,83 +116,77 @@ def load_events():
     return events
 
 
+
+body = []
+mx = max(counts)
+
+# ── milestones: newest at the top ────────────────────────────────
 MAX_LABELS = 7
-LX, FS_ANN = 18, 16
 placed = []
 for d, tag, text in load_events():
     i = idx(d)
-    if not 0 <= i < N:
-        continue
-    a = ang(i)
-    c = counts[i]
-    tip = R0 + (3 if c == 0 else 8 + 20 * math.log2(1 + c)) + 5
-    x1, y1 = pt(tip, a)
-    placed.append([d, x1, y1, i, tag or d.strftime("%b").lower(), text])
-placed.sort(key=lambda p: p[0], reverse=True)          # newest first
+    if 0 <= i < N:
+        placed.append((d, i, tag or d.strftime("%b").lower(), text))
+placed.sort(key=lambda p: p[0], reverse=True)
 placed = placed[:MAX_LABELS]
-TOP, BOTTOM = 52, H - 92
-gap = min(48, (BOTTOM - TOP) / max(1, len(placed) - 1))
-for k, p in enumerate(placed):                         # newest at the top, oldest at the bottom
-    p.append(TOP + k * gap)
-placed = [[p[2], p[1], p[3], p[4], p[5], p[6]] for p in placed]
-for k, (y1, x1, i, mon, text, ly) in enumerate(placed, 1):
+marked = {p[1] for p in placed}
+
+# ── the bloom ────────────────────────────────────────────────────
+for i, c in enumerate(counts):
+    a = ang(i)
+    ln = bar_len(c)
+    x1, y1 = pt(R0, a)
+    x2, y2 = pt(R0 + ln, a)
+    b = f"{DRAW * i / N:.3f}s"
+    cls = "l4" if i in marked else f"l{level(c, mx)}"
+    w = 1.9 if i in marked else 1.5
+    body.append(f'<line class="{cls}" x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" '
+                f'stroke-width="{w}" stroke-linecap="round" stroke-dasharray="{ln:.1f}" stroke-dashoffset="{ln:.1f}">'
+                f'<animate attributeName="stroke-dashoffset" to="0" begin="{b}" dur=".5s" fill="freeze"/></line>')
+
+# ── milestone list + matching numerals on the bloom ─────────────
+LX, TOP = 24, 70
+gap = min(44, (H - 120 - TOP) / max(1, len(placed) - 1))
+for k, (d, i, mon, text) in enumerate(placed, 1):
+    ly = TOP + (k - 1) * gap
+    n = f"{k:02d}"
     t0 = DRAW * i / N + 0.2
     a = ang(i)
-    c = counts[i]
-    br = R0 + (3 if c == 0 else 8 + 20 * math.log2(1 + c)) + 13
-    bx, by = pt(br, a)
-    body.append(f'<g opacity="0"><circle class="badge" cx="{bx:.1f}" cy="{by:.1f}" r="8.5"/>'
-                f'<text class="bnum" x="{bx:.1f}" y="{by + 3.4:.1f}" text-anchor="middle">{k}</text>'
-                f'<circle class="badge" cx="{LX + 8.5:.1f}" cy="{ly - 5:.1f}" r="8.5"/>'
-                f'<text class="bnum" x="{LX + 8.5:.1f}" y="{ly - 1.6:.1f}" text-anchor="middle">{k}</text>'
-                f'<text class="mon" x="{LX + 28}" y="{ly:.1f}">{serif("si", mon)}</text>'
-                f'<text class="ann" x="{LX + 104}" y="{ly:.1f}">{serif("sr", text)}</text>'
+    near = max(bar_len(counts[j]) for j in range(max(0, i - 5), min(N, i + 6)))
+    bx, by = pt(R0 + near + 12, a)
+    body.append(f'<g opacity="0">'
+                f'<text class="mono faint" x="{bx:.1f}" y="{by + 3.5:.1f}" text-anchor="middle" font-size="10">{T("geistmono", n)}</text>'
+                f'<text class="mono faint" x="{LX}" y="{ly:.1f}" font-size="11">{T("geistmono", n)}</text>'
+                f'<text class="mono mute" x="{LX + 30}" y="{ly:.1f}" font-size="11">{T("geistmono", mon)}</text>'
+                f'<text class="sans ink" x="{LX + 92}" y="{ly:.1f}" font-size="15">{T("geist", text)}</text>'
                 f'<animate attributeName="opacity" to="1" begin="{t0:.2f}s" dur=".5s" fill="freeze"/></g>')
 
-# ── today marker ─────────────────────────────────────────────────
-tx, ty = pt(R0 - 4, ang(N - 1))
-body.append(f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="3" fill="#e54876" opacity="0">'
-            f'<animate attributeName="opacity" values="0;1;.35;1" begin="{DRAW:.1f}s" dur="2.4s" repeatCount="indefinite"/></circle>')
+# small heading over the list
+body.append(f'<text class="mono faint" x="{LX}" y="{TOP - 34}" font-size="10.5" letter-spacing="1.2">'
+            f'{T("geistmono", "THE PAST YEAR")}</text>')
+
+# ── today ────────────────────────────────────────────────────────
+tx, ty = pt(R0 - 6, ang(N - 1))
+body.append(f'<circle class="dotf" cx="{tx:.1f}" cy="{ty:.1f}" r="2.4" opacity="0">'
+            f'<animate attributeName="opacity" values="0;1;.3;1" begin="{DRAW:.1f}s" dur="2.4s" repeatCount="indefinite"/></circle>')
 
 # ── centre ───────────────────────────────────────────────────────
-body.append(f'<text class="nm" x="{CX}" y="{CY - 12}" text-anchor="middle">{serif("sr", "ved agwekar")}</text>')
-body.append(f'<text class="sub" x="{CX}" y="{CY + 10}" text-anchor="middle">{serif("si", "math, uwaterloo")}</text>')
-body.append(f'<text class="num" x="{CX}" y="{CY + 34}" text-anchor="middle">{TOTAL} contributions</text>')
+body.append(f'<text class="sans ink" x="{CX}" y="{CY - 6}" text-anchor="middle" font-size="19" font-weight="500" '
+            f'letter-spacing="-.2">{T("geist", "ved agwekar")}</text>')
+body.append(f'<text class="sans mute" x="{CX}" y="{CY + 14}" text-anchor="middle" font-size="12">'
+            f'{T("geist", "math · uwaterloo")}</text>')
+body.append(f'<text class="mono faint" x="{CX}" y="{CY + 36}" text-anchor="middle" font-size="10.5">'
+            f'{T("geistmono", f"{TOTAL} contributions")}</text>')
 
+# ── footer ───────────────────────────────────────────────────────
+foot = f"{START.strftime('%b %Y').lower()} → {END.strftime('%b %Y').lower()} · one line per day · redrawn nightly"
+body.append(f'<text class="mono faint" x="{W / 2}" y="{H - 16}" text-anchor="middle" font-size="10.5">'
+            f'{T("geistmono", foot)}</text>')
 
-# footer
-body.append(f'<text class="foot" x="{W / 2}" y="{H - 18}" text-anchor="middle">'
-            f"{START.strftime('%b %Y').lower()} → {END.strftime('%b %Y').lower()} · one line per day · redrawn nightly</text>")
-
-
-def face(cls, file):
-    opts = subset.Options()
-    opts.flavor = "woff"
-    f = TTFont(LM + file)
-    s = subset.Subsetter(opts)
-    s.populate(text="".join(serif_text[cls]) + " ")
-    s.subset(f)
-    f.flavor = "woff"
-    buf = io.BytesIO()
-    f.save(buf)
-    return (f"@font-face{{font-family:{cls};src:url(data:font/woff;base64,"
-            f"{base64.b64encode(buf.getvalue()).decode()}) format('woff')}}")
-
-
-css = "".join(face(k, v) for k, v in SERIF_FILES.items())
-SR = "sr,'Latin Modern Roman',Georgia,serif"
-SI = "si,'Latin Modern Roman',Georgia,serif"
-css += (f".ann{{font-family:{SR};font-size:16px;fill:#3b322a}}.mon{{font-family:{SI};font-size:16px;fill:#9a8b7d}}"
-        f".nm{{font-family:{SR};font-size:24px;fill:#2b241e}}"
-        f".sub,.trk,.rec{{font-family:{SI};fill:#7b6d60}}.sub{{font-size:15px}}.trk{{font-size:9.5px}}.rec{{font-size:13px}}"
-        f".seek{{font-family:{SI};font-size:18px;fill:#e54876}}.num,.foot{{font-family:{MONO}}}.num{{font-size:11.5px;fill:#7b6d60}}"
-        f".foot{{font-size:11px;fill:#a3958a}}"
-        ".zero{stroke:#d6ccc0}.badge{fill:#e54876}"f".bnum{{font-family:{MONO};font-size:10px;font-weight:700;fill:#fff}}"
-        "@media (prefers-color-scheme:dark){.ann{fill:#e6ddd1}.mon{fill:#8b949e}.nm{fill:#f3ebe0}.sub,.trk,.rec,.num{fill:#9aa3ad}"
-        ".foot{fill:#6e7681}.zero{stroke:#30363d}}")
-
+css = (typo.face("geist", "".join(used["geist"])) + typo.face("geistmono", "".join(used["geistmono"]))
+       + f".sans{{font-family:{typo.SANS}}}.mono{{font-family:{typo.MONO}}}" + typo.PALETTE_CSS)
 svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
-       f'role="img" aria-label="ved agwekar: the year, annotated">'
-       f"<style>{css}</style><defs>{''.join(defs)}</defs>{''.join(body)}</svg>")
+       f'role="img" aria-label="ved agwekar: the past year, one line per day of commits, with milestones">'
+       f"<style>{css}</style>{''.join(body)}</svg>")
 open(os.path.join(ROOT, "assets", "year.svg"), "w").write(svg)
 print(f"year.svg {W}x{H} {len(svg)//1024} KB")

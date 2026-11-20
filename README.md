@@ -1,9 +1,9 @@
 <p align="center">
-  <img src="assets/year-202611200248.svg" alt="ved agwekar: my year, one line per day of commits, annotated">
+  <a href="https://github.com/vedagwekar/vedagwekar/blob/main/resume.pdf"><img src="assets/header.svg" alt="looking for summer 2027 co-ops · resume"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/vedagwekar/vedagwekar/blob/main/resume.pdf"><img src="assets/coops.svg" alt="looking for summer 2027 co-ops. read my resume."></a>
+  <img src="assets/year-202611200248.svg" alt="ved agwekar: my year, one line per day of commits, annotated">
 </p>
 
 <p align="center">
