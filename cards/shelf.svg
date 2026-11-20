@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="498" height="232" viewBox="0 0 498 232">
+<style>text{font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,'Liberation Mono',monospace}.bg{fill:#fbf6ef;stroke:#e6d6c2}.ti{fill:#3b2a1a}.de{fill:#6b5a49}.tg{fill:#8a7660}@media (prefers-color-scheme:dark){.bg{fill:#161b22;stroke:#30363d}.ti{fill:#f5e6cc}.de{fill:#b9ab98}.tg{fill:#8b949e}}.sp{font-size:10.5px;font-weight:700;fill:#fff8ee}.au{font-size:8.5px;fill:#fff8ee;opacity:.75}.pl{fill:#a86a2c}@media (prefers-color-scheme:dark){.pl{fill:#7a4a1e}}</style>
+<text class="ti" x="40" y="22" font-size="13" font-weight="700">shelf</text>
+<text class="tg" x="86" y="22" font-size="11">books i've read · recs welcome ↗</text>
+<rect x="40" y="48" width="41" height="150" rx="3" fill="#8a5a2b"/>
+<rect x="40" y="58" width="41" height="2" fill="#000" opacity=".15"/>
+<rect x="40" y="184" width="41" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:8.5px;fill:#fff8ee" transform="translate(69.5 178) rotate(-90)">thus spoke zarathustra</text>
+<text class="au" style="fill:#fff8ee" transform="translate(56.5 178) rotate(-90)">nietzsche</text>
+<rect x="86" y="36" width="47" height="162" rx="3" fill="#c2416f"/>
+<rect x="86" y="46" width="47" height="2" fill="#000" opacity=".15"/>
+<rect x="86" y="184" width="47" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:8.3px;fill:#fff8ee" transform="translate(118.5 178) rotate(-90)">the count of monte cristo</text>
+<text class="au" style="fill:#fff8ee" transform="translate(105.5 178) rotate(-90)">dumas</text>
+<rect x="138" y="30" width="51" height="168" rx="3" fill="#e8b46c"/>
+<rect x="138" y="40" width="51" height="2" fill="#000" opacity=".15"/>
+<rect x="138" y="184" width="51" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:7.5px;fill:#2a1a0c" transform="translate(172.5 178) rotate(-90)">one hundred years of solitude</text>
+<text class="au" style="fill:#2a1a0c" transform="translate(159.5 178) rotate(-90)">garcía márquez</text>
+<rect x="194" y="52" width="41" height="146" rx="3" fill="#4cc9f0"/>
+<rect x="194" y="62" width="41" height="2" fill="#000" opacity=".15"/>
+<rect x="194" y="184" width="41" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:6.9px;fill:#2a1a0c" transform="translate(223.5 178) rotate(-90)">the picture of dorian gray</text>
+<text class="au" style="fill:#2a1a0c" transform="translate(210.5 178) rotate(-90)">wilde</text>
+<rect x="240" y="38" width="45" height="160" rx="3" fill="#7a2e2e"/>
+<rect x="240" y="48" width="45" height="2" fill="#000" opacity=".15"/>
+<rect x="240" y="184" width="45" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:10.2px;fill:#fff8ee" transform="translate(271.5 178) rotate(-90)">crime and punishment</text>
+<text class="au" style="fill:#fff8ee" transform="translate(258.5 178) rotate(-90)">dostoevsky</text>
+<rect x="290" y="58" width="37" height="140" rx="3" fill="#e05050"/>
+<rect x="290" y="68" width="37" height="2" fill="#000" opacity=".15"/>
+<rect x="290" y="184" width="37" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:10.5px;fill:#fff8ee" transform="translate(317.5 178) rotate(-90)">red rising</text>
+<rect x="332" y="46" width="41" height="152" rx="3" fill="#3d5a80"/>
+<rect x="332" y="56" width="41" height="2" fill="#000" opacity=".15"/>
+<rect x="332" y="184" width="41" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:9.5px;fill:#fff8ee" transform="translate(361.5 178) rotate(-90)">beyond good and evil</text>
+<text class="au" style="fill:#fff8ee" transform="translate(348.5 178) rotate(-90)">nietzsche</text>
+<rect x="378" y="70" width="33" height="128" rx="3" fill="#06d6a0"/>
+<rect x="378" y="80" width="33" height="2" fill="#000" opacity=".15"/>
+<rect x="378" y="184" width="33" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:10.5px;fill:#2a1a0c" transform="translate(403.5 178) rotate(-90)">animal farm</text>
+<rect x="416" y="56" width="37" height="142" rx="3" fill="#b388ff"/>
+<rect x="416" y="66" width="37" height="2" fill="#000" opacity=".15"/>
+<rect x="416" y="184" width="37" height="2" fill="#000" opacity=".15"/>
+<text class="sp" style="font-size:10.5px;fill:#fff8ee" transform="translate(443.5 178) rotate(-90)">exhalation</text>
+<rect class="pl" x="24" y="198" width="456" height="9" rx="2"/>
+<rect class="pl" x="30" y="207" width="8" height="14" opacity=".8"/>
+<rect class="pl" x="464" y="207" width="8" height="14" opacity=".8"/>
+</svg>
