@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="donut/donut-v4.svg" alt="spinning ascii donut">
+  <img src="donut/donut-v5.svg" alt="spinning ascii donut">
 </p>
 
 <p align="center">
