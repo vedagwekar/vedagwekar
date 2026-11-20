@@ -112,17 +112,54 @@ for i, c in enumerate(counts):
                     f'to="0" begin="{b}" dur=".5s" fill="freeze"/></line>')
 
 # ── annotations (callouts with elbow leaders) ────────────────────
-EVENTS = [  # date, month, text
-    (dt.date(2026, 6, 20), "jun", "graduated high school"),
-    (dt.date(2026, 7, 10), "summer", "started cetr index"),
-    (dt.date(2026, 9, 3), "sep", "moved to waterloo"),
-    (dt.date(2026, 9, 20), "sep", "won formulatech hacks"),
-    (dt.date(2026, 11, 6), "nov", "joined warg"),
-    (dt.date(2026, 11, 12), "nov", "built homeward"),
-]
-LX, FS_ANN, GAP = 18, 16, 34
+def load_events():
+    """milestones come from events.txt, plus any open github issue labelled 'milestone'."""
+    events = []
+    path = os.path.join(ROOT, "events.txt")
+    if os.path.exists(path):
+        for line in open(path, encoding="utf-8"):
+            line = line.split("#", 1)[0].strip()
+            if not line:
+                continue
+            parts = [p.strip() for p in line.split("|")]
+            try:
+                d = dt.date.fromisoformat(parts[0])
+            except ValueError:
+                print(f"skipping line with a bad date: {line!r}")
+                continue
+            if len(parts) < 2 or not parts[1]:
+                continue
+            events.append((d, parts[2].lower() if len(parts) > 2 and parts[2] else None, parts[1].lower()))
+    token = os.environ.get("GITHUB_TOKEN")
+    repo = os.environ.get("GITHUB_REPOSITORY")
+    if token and repo:
+        req = urllib.request.Request(
+            f"https://api.github.com/repos/{repo}/issues?labels=milestone&state=open&per_page=100",
+            headers={"Authorization": f"bearer {token}", "Accept": "application/vnd.github+json"})
+        for iss in json.load(urllib.request.urlopen(req)):
+            if "pull_request" in iss:
+                continue
+            body = (iss.get("body") or "").strip()
+            d = dt.date.fromisoformat(iss["created_at"][:10])
+            tag = None
+            for ln in body.splitlines():
+                ln = ln.strip()
+                if ln[:10].count("-") == 2:
+                    try:
+                        d = dt.date.fromisoformat(ln[:10])
+                        continue
+                    except ValueError:
+                        pass
+                if ln.lower().startswith("label:"):
+                    tag = ln.split(":", 1)[1].strip().lower() or None
+            events.append((d, tag, iss["title"].strip().lower()))
+    return events
+
+
+MAX_LABELS = 7
+LX, FS_ANN = 18, 16
 placed = []
-for d, mon, text in EVENTS:
+for d, tag, text in load_events():
     i = idx(d)
     if not 0 <= i < N:
         continue
@@ -130,25 +167,26 @@ for d, mon, text in EVENTS:
     c = counts[i]
     tip = R0 + (3 if c == 0 else 8 + 20 * math.log2(1 + c)) + 5
     x1, y1 = pt(tip, a)
-    placed.append([y1, x1, i, mon, text])
-placed.sort()
-for k in range(len(placed)):                      # push labels apart, top to bottom
-    lo = 30 if k == 0 else placed[k - 1][0] + GAP
-    placed[k].append(max(placed[k][0], lo))
-over = placed[-1][5] - (H - 70) if placed else 0
-if over > 0:                                      # then pull back up if we ran off the bottom
-    for k in range(len(placed) - 1, -1, -1):
-        hi = H - 70 if k == len(placed) - 1 else placed[k + 1][5] - GAP
-        placed[k][5] = min(placed[k][5], hi)
-for y1, x1, i, mon, text, ly in placed:
+    placed.append([d, x1, y1, i, tag or d.strftime("%b").lower(), text])
+placed.sort(key=lambda p: p[0], reverse=True)          # newest first
+placed = placed[:MAX_LABELS]
+TOP, BOTTOM = 52, H - 92
+gap = min(48, (BOTTOM - TOP) / max(1, len(placed) - 1))
+for k, p in enumerate(placed):                         # newest at the top, oldest at the bottom
+    p.append(TOP + k * gap)
+placed = [[p[2], p[1], p[3], p[4], p[5], p[6]] for p in placed]
+for k, (y1, x1, i, mon, text, ly) in enumerate(placed, 1):
     t0 = DRAW * i / N + 0.2
-    m_w = text_w(mon + " ", FS_ANN)
-    lend = LX + 82 + text_w(text, FS_ANN) + 10
-    body.append(f'<g opacity="0"><circle class="dot" cx="{x1:.1f}" cy="{y1:.1f}" r="2.6"/>'
-                f'<polyline class="lead" points="{lend:.1f},{ly - 5:.1f} {max(lend + 8, x1 - 14):.1f},{ly - 5:.1f} '
-                f'{x1:.1f},{y1:.1f}" fill="none" stroke-width=".8"/>'
-                f'<text class="mon" x="{LX}" y="{ly:.1f}">{serif("si", mon)}</text>'
-                f'<text class="ann" x="{LX + 82}" y="{ly:.1f}">{serif("sr", text)}</text>'
+    a = ang(i)
+    c = counts[i]
+    br = R0 + (3 if c == 0 else 8 + 20 * math.log2(1 + c)) + 13
+    bx, by = pt(br, a)
+    body.append(f'<g opacity="0"><circle class="badge" cx="{bx:.1f}" cy="{by:.1f}" r="8.5"/>'
+                f'<text class="bnum" x="{bx:.1f}" y="{by + 3.4:.1f}" text-anchor="middle">{k}</text>'
+                f'<circle class="badge" cx="{LX + 8.5:.1f}" cy="{ly - 5:.1f}" r="8.5"/>'
+                f'<text class="bnum" x="{LX + 8.5:.1f}" y="{ly - 1.6:.1f}" text-anchor="middle">{k}</text>'
+                f'<text class="mon" x="{LX + 28}" y="{ly:.1f}">{serif("si", mon)}</text>'
+                f'<text class="ann" x="{LX + 104}" y="{ly:.1f}">{serif("sr", text)}</text>'
                 f'<animate attributeName="opacity" to="1" begin="{t0:.2f}s" dur=".5s" fill="freeze"/></g>')
 
 # ── today marker ─────────────────────────────────────────────────
@@ -190,9 +228,9 @@ css += (f".ann{{font-family:{SR};font-size:16px;fill:#3b322a}}.mon{{font-family:
         f".sub,.trk,.rec{{font-family:{SI};fill:#7b6d60}}.sub{{font-size:15px}}.trk{{font-size:9.5px}}.rec{{font-size:13px}}"
         f".seek{{font-family:{SI};font-size:18px;fill:#e54876}}.num,.foot{{font-family:{MONO}}}.num{{font-size:11.5px;fill:#7b6d60}}"
         f".foot{{font-size:11px;fill:#a3958a}}"
-        ".zero{stroke:#d6ccc0}.lead{stroke:#b9ab9c}.dot{fill:#4a3f35}"
+        ".zero{stroke:#d6ccc0}.badge{fill:#e54876}"f".bnum{{font-family:{MONO};font-size:10px;font-weight:700;fill:#fff}}"
         "@media (prefers-color-scheme:dark){.ann{fill:#e6ddd1}.mon{fill:#8b949e}.nm{fill:#f3ebe0}.sub,.trk,.rec,.num{fill:#9aa3ad}"
-        ".foot{fill:#6e7681}.zero{stroke:#30363d}.lead{stroke:#4b535d}.dot{fill:#d9cfc2}}")
+        ".foot{fill:#6e7681}.zero{stroke:#30363d}}")
 
 svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
        f'role="img" aria-label="ved agwekar: the year, annotated">'

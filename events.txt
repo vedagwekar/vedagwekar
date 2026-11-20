@@ -1,0 +1,14 @@
+# milestones on my profile drawing, one per line:
+#   date (yyyy-mm-dd) | what happened | optional word to show instead of the month
+# newest go at the top of the drawing automatically. only the past year shows,
+# and only the 7 most recent. save this file and the drawing redraws itself.
+#
+# you can also open an issue with the "milestone" label: the title is the text,
+# and put a date like 2026-12-01 (and optionally "label: winter") in the body.
+
+2026-11-12 | built homeward
+2026-11-06 | joined warg
+2026-09-20 | won formulatech hacks
+2026-09-03 | moved to waterloo
+2026-07-10 | started cetr index | summer
+2026-06-20 | graduated high school

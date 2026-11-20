@@ -4,15 +4,28 @@ on:
   schedule:
     - cron: "17 7 * * *"   # every night, ~2am toronto
   workflow_dispatch:
+  push:                    # redraw as soon as i edit my milestones
+    paths:
+      - events.txt
+      - scripts/year.py
+  issues:                  # or open/edit/close an issue labelled "milestone"
+    types: [opened, edited, closed, reopened, labeled, unlabeled]
 
 permissions:
   contents: write
+  issues: read
+
+concurrency:
+  group: redraw
+  cancel-in-progress: false
 
 jobs:
   redraw:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
