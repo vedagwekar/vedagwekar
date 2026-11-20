@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/year.svg" alt="ved agwekar: my year, one line per day of commits, annotated">
+  <img src="assets/year-20261120.svg" alt="ved agwekar: my year, one line per day of commits, annotated">
 </p>
 
 <p align="center">
