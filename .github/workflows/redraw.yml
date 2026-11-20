@@ -33,10 +33,10 @@ jobs:
       - run: python scripts/year.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # github caches profile images by filename, so each redraw gets a dated name
+      # github caches profile images by filename, so each redraw gets a timestamped name
       - name: give it a fresh name and point the readme at it
         run: |
-          new="assets/year-$(date -u +%Y%m%d).svg"
+          new="assets/year-$(date -u +%Y%m%d%H%M).svg"
           for f in assets/year-*.svg; do [ "$f" != "$new" ] && git rm -q "$f" || true; done
           mv assets/year.svg "$new"
           sed -i -E "s#assets/year(-[0-9]+)?\.svg#${new}#" README.md

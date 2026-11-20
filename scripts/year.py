@@ -39,7 +39,7 @@ N = len(counts)
 END = START + dt.timedelta(days=N - 1)
 TOTAL = sum(counts)
 
-W, H = 830, 505
+W, H = 830, 490
 CX, CY = 580, 282
 R0 = 104
 MONO = "ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,'Liberation Mono',monospace"
@@ -201,8 +201,7 @@ body.append(f'<text class="num" x="{CX}" y="{CY + 34}" text-anchor="middle">{TOT
 
 
 # footer
-body.append(f'<text class="seek" x="{LX}" y="{H - 18}">{serif("si", "looking for summer 2027 co-ops")}</text>')
-body.append(f'<text class="foot" x="{W - 14}" y="{H - 18}" text-anchor="end">'
+body.append(f'<text class="foot" x="{W / 2}" y="{H - 18}" text-anchor="middle">'
             f"{START.strftime('%b %Y').lower()} → {END.strftime('%b %Y').lower()} · one line per day · redrawn nightly</text>")
 
 
