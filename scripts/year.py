@@ -39,9 +39,9 @@ N = len(counts)
 END = START + dt.timedelta(days=N - 1)
 TOTAL = sum(counts)
 
-W, H = 960, 820
-CX, CY = 600, 405
-R0 = 152
+W, H = 830, 505
+CX, CY = 580, 282
+R0 = 104
 MONO = "ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,'Liberation Mono',monospace"
 LM = os.path.join(ROOT, "assets", "fonts") + "/"
 SERIF_FILES = {"sr": "lmroman10-regular.otf", "si": "lmroman10-italic.otf"}
@@ -95,36 +95,10 @@ body, defs = [], []
 DRAW = 3.6  # seconds for the year to play back
 mx = max(counts)
 
-# ── inner timelines ──────────────────────────────────────────────
-TRACKS = [  # radius, start, end, label, colour   (dates clamp to the window)
-    (R0 - 12, None, dt.date(2026, 8, 31), "calgary", "#9c8670"),
-    (R0 - 12, dt.date(2026, 9, 2), None, "waterloo", "#c9a227"),
-    (R0 - 25, None, None, "youth policy council · full stack dev", "#e6a23c"),
-    (R0 - 38, dt.date(2026, 9, 8), None, "spais · computer vision", "#a78bfa"),
-    (R0 - 51, dt.date(2026, 11, 3), None, "warg", "#2bb8a0"),
-]
-for k, (r, d0, d1, label, col) in enumerate(TRACKS):
-    i0 = 0 if d0 is None else max(0, idx(d0))
-    i1 = N - 1 if d1 is None else min(N - 1, idx(d1))
-    if i1 - i0 < 2:
-        continue
-    pid = f"t{k}"
-    d = arc_path(r, i0, i1)
-    defs.append(f'<path id="{pid}" d="{arc_path(r + 3.2, i0, i1)}"/>')
-    t0 = DRAW * i0 / N
-    dur = max(0.4, DRAW * (i1 - i0) / N)
-    L = 2 * math.pi * r * (i1 - i0) / N + 2
-    body.append(f'<path d="{d}" fill="none" stroke="{col}" stroke-width="1.6" stroke-linecap="round" '
-                f'stroke-dasharray="{L:.1f}" stroke-dashoffset="{L:.1f}">'
-                f'<animate attributeName="stroke-dashoffset" to="0" begin="{t0:.2f}s" dur="{dur:.2f}s" fill="freeze"/></path>')
-    if (i1 - i0) > 25:
-        body.append(f'<text class="trk" opacity="0"><textPath href="#{pid}" startOffset="6">{serif("si", label)}'
-                    f'</textPath><animate attributeName="opacity" to="1" begin="{t0 + .3:.2f}s" dur=".6s" fill="freeze"/></text>')
-
 # ── the bloom ────────────────────────────────────────────────────
 for i, c in enumerate(counts):
     a = ang(i)
-    ln = 3 if c == 0 else 9 + 24 * math.log2(1 + c)
+    ln = 3 if c == 0 else 8 + 20 * math.log2(1 + c)
     x1, y1 = pt(R0, a)
     x2, y2 = pt(R0 + ln, a)
     b = f"{DRAW * i / N:.3f}s"
@@ -138,31 +112,43 @@ for i, c in enumerate(counts):
                     f'to="0" begin="{b}" dur=".5s" fill="freeze"/></line>')
 
 # ── annotations (callouts with elbow leaders) ────────────────────
-EVENTS = [  # date, month label, text, label y
-    (dt.date(2026, 6, 20), "jun", "graduated high school", 700),
-    (dt.date(2026, 7, 10), "summer", "started building cetr index", 616),
-    (dt.date(2026, 9, 3), "sep", "moved to waterloo for math", 372),
-    (dt.date(2026, 9, 20), "sep", "first hackathon: won formulatech hacks", 326),
-    (dt.date(2026, 11, 6), "nov", "joined warg flight software", 100),
-    (dt.date(2026, 11, 12), "nov", "built homeward for the stellar challenge", 58),
+EVENTS = [  # date, month, text
+    (dt.date(2026, 6, 20), "jun", "graduated high school"),
+    (dt.date(2026, 7, 10), "summer", "started cetr index"),
+    (dt.date(2026, 9, 3), "sep", "moved to waterloo"),
+    (dt.date(2026, 9, 20), "sep", "won formulatech hacks"),
+    (dt.date(2026, 11, 6), "nov", "joined warg"),
+    (dt.date(2026, 11, 12), "nov", "built homeward"),
 ]
-LX = 36
-for d, mon, text, ly in EVENTS:
+LX, FS_ANN, GAP = 18, 16, 34
+placed = []
+for d, mon, text in EVENTS:
     i = idx(d)
     if not 0 <= i < N:
         continue
     a = ang(i)
     c = counts[i]
-    tip = R0 + (3 if c == 0 else 9 + 24 * math.log2(1 + c)) + 6
+    tip = R0 + (3 if c == 0 else 8 + 20 * math.log2(1 + c)) + 5
     x1, y1 = pt(tip, a)
+    placed.append([y1, x1, i, mon, text])
+placed.sort()
+for k in range(len(placed)):                      # push labels apart, top to bottom
+    lo = 30 if k == 0 else placed[k - 1][0] + GAP
+    placed[k].append(max(placed[k][0], lo))
+over = placed[-1][5] - (H - 70) if placed else 0
+if over > 0:                                      # then pull back up if we ran off the bottom
+    for k in range(len(placed) - 1, -1, -1):
+        hi = H - 70 if k == len(placed) - 1 else placed[k + 1][5] - GAP
+        placed[k][5] = min(placed[k][5], hi)
+for y1, x1, i, mon, text, ly in placed:
     t0 = DRAW * i / N + 0.2
-    label = f"{mon} — {text}"
-    lend = LX + text_w(label, 13) + 10
-    ex = max(lend + 10, x1 - abs(y1 - (ly - 4)) * 0.35)
-    body.append(f'<g opacity="0"><circle class="dot" cx="{x1:.1f}" cy="{y1:.1f}" r="2.2"/>'
-                f'<polyline class="lead" points="{lend:.1f},{ly - 4} {ex:.1f},{ly - 4} {x1:.1f},{y1:.1f}" '
-                f'fill="none" stroke-width=".7"/>'
-                f'<text class="ann" x="{LX}" y="{ly}">{serif("sr", label)}</text>'
+    m_w = text_w(mon + " ", FS_ANN)
+    lend = LX + 82 + text_w(text, FS_ANN) + 10
+    body.append(f'<g opacity="0"><circle class="dot" cx="{x1:.1f}" cy="{y1:.1f}" r="2.6"/>'
+                f'<polyline class="lead" points="{lend:.1f},{ly - 5:.1f} {max(lend + 8, x1 - 14):.1f},{ly - 5:.1f} '
+                f'{x1:.1f},{y1:.1f}" fill="none" stroke-width=".8"/>'
+                f'<text class="mon" x="{LX}" y="{ly:.1f}">{serif("si", mon)}</text>'
+                f'<text class="ann" x="{LX + 82}" y="{ly:.1f}">{serif("sr", text)}</text>'
                 f'<animate attributeName="opacity" to="1" begin="{t0:.2f}s" dur=".5s" fill="freeze"/></g>')
 
 # ── today marker ─────────────────────────────────────────────────
@@ -171,21 +157,15 @@ body.append(f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="3" fill="#e54876" opacity="
             f'<animate attributeName="opacity" values="0;1;.35;1" begin="{DRAW:.1f}s" dur="2.4s" repeatCount="indefinite"/></circle>')
 
 # ── centre ───────────────────────────────────────────────────────
-body.append(f'<text class="nm" x="{CX}" y="{CY - 14}" text-anchor="middle">{serif("sr", "ved agwekar")}</text>')
-body.append(f'<text class="sub" x="{CX}" y="{CY + 6}" text-anchor="middle">{serif("si", "math, uwaterloo")}</text>')
-body.append(f'<text class="num" x="{CX}" y="{CY + 30}" text-anchor="middle">{TOTAL} contributions</text>')
-body.append(f'<text class="seek" x="{CX}" y="{CY + 48}" text-anchor="middle">{serif("si", "looking for summer 2027 co-ops")}</text>')
+body.append(f'<text class="nm" x="{CX}" y="{CY - 12}" text-anchor="middle">{serif("sr", "ved agwekar")}</text>')
+body.append(f'<text class="sub" x="{CX}" y="{CY + 10}" text-anchor="middle">{serif("si", "math, uwaterloo")}</text>')
+body.append(f'<text class="num" x="{CX}" y="{CY + 34}" text-anchor="middle">{TOTAL} contributions</text>')
 
-# ── book recs on the outer ring ──────────────────────────────────
-RB = R0 + 205
-defs.append(f'<path id="rec" d="M {CX - RB} {CY} A {RB} {RB} 0 0 0 {CX + RB} {CY}"/>')
-body.append('<text class="rec" text-anchor="middle"><textPath href="#rec" startOffset="50%">'
-            + serif("si", "reading recommendations:  thus spoke zarathustra, nietzsche  ·  the count of monte cristo, dumas")
-            + "</textPath></text>")
 
 # footer
-body.append(f'<text class="foot" x="{W - 24}" y="{H - 16}" text-anchor="end">'
-            f"{START.strftime('%b %Y').lower()} → {END.strftime('%b %Y').lower()} · each line is a day · redrawn nightly</text>")
+body.append(f'<text class="seek" x="{LX}" y="{H - 18}">{serif("si", "looking for summer 2027 co-ops")}</text>')
+body.append(f'<text class="foot" x="{W - 14}" y="{H - 18}" text-anchor="end">'
+            f"{START.strftime('%b %Y').lower()} → {END.strftime('%b %Y').lower()} · one line per day · redrawn nightly</text>")
 
 
 def face(cls, file):
@@ -205,14 +185,14 @@ def face(cls, file):
 css = "".join(face(k, v) for k, v in SERIF_FILES.items())
 SR = "sr,'Latin Modern Roman',Georgia,serif"
 SI = "si,'Latin Modern Roman',Georgia,serif"
-css += (f".ann{{font-family:{SR};font-size:13px;fill:#4a3f35}}"
-        f".nm{{font-family:{SR};font-size:22px;fill:#2b241e}}"
-        f".sub,.trk,.rec{{font-family:{SI};fill:#7b6d60}}.sub{{font-size:13px}}.trk{{font-size:9.5px}}.rec{{font-size:13px}}"
-        f".seek{{font-family:{SI};font-size:13px;fill:#e54876}}.num,.mon,.foot{{font-family:{MONO}}}.num{{font-size:10.5px;fill:#7b6d60}}"
-        f".mon{{font-size:8.5px;fill:#b3a594}}.foot{{font-size:9.5px;fill:#a3958a}}"
+css += (f".ann{{font-family:{SR};font-size:16px;fill:#3b322a}}.mon{{font-family:{SI};font-size:16px;fill:#9a8b7d}}"
+        f".nm{{font-family:{SR};font-size:24px;fill:#2b241e}}"
+        f".sub,.trk,.rec{{font-family:{SI};fill:#7b6d60}}.sub{{font-size:15px}}.trk{{font-size:9.5px}}.rec{{font-size:13px}}"
+        f".seek{{font-family:{SI};font-size:18px;fill:#e54876}}.num,.foot{{font-family:{MONO}}}.num{{font-size:11.5px;fill:#7b6d60}}"
+        f".foot{{font-size:11px;fill:#a3958a}}"
         ".zero{stroke:#d6ccc0}.lead{stroke:#b9ab9c}.dot{fill:#4a3f35}"
-        "@media (prefers-color-scheme:dark){.ann{fill:#d9cfc2}.nm{fill:#f3ebe0}.sub,.trk,.rec,.num{fill:#9aa3ad}"
-        ".mon{fill:#5b636d}.foot{fill:#6e7681}.zero{stroke:#30363d}.lead{stroke:#4b535d}.dot{fill:#d9cfc2}}")
+        "@media (prefers-color-scheme:dark){.ann{fill:#e6ddd1}.mon{fill:#8b949e}.nm{fill:#f3ebe0}.sub,.trk,.rec,.num{fill:#9aa3ad}"
+        ".foot{fill:#6e7681}.zero{stroke:#30363d}.lead{stroke:#4b535d}.dot{fill:#d9cfc2}}")
 
 svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
        f'role="img" aria-label="ved agwekar: the year, annotated">'

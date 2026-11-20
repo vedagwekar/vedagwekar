@@ -1,10 +1,13 @@
 <p align="center">
-  <img src="assets/year.svg" alt="ved agwekar: my year, drawn from my commits and annotated">
+  <img src="assets/year.svg" alt="ved agwekar: my year, one line per day of commits, annotated">
 </p>
 
 <p align="center">
   <a href="https://github.com/vedagwekar/cetr-index"><b>cetr index</b></a> · how exposed each province is to the shift off fossil fuels<br>
   <a href="https://github.com/vedagwekar/homeward"><b>homeward</b></a> · pay for your parents' house from abroad, built on stellar<br>
-  <a href="https://youthpolicycouncil.ca"><b>youth policy council</b></a> · full stack developer, i built and run the site<br>
-  <sub><a href="https://vedagwekar.com">vedagwekar.com</a></sub>
+  <a href="https://youthpolicycouncil.ca"><b>youth policy council</b></a> · full stack developer, i built and run the site
+</p>
+
+<p align="center">
+  <sub>reading recs: <i>thus spoke zarathustra</i> · <i>the count of monte cristo</i> · more on <a href="https://vedagwekar.com/shelf">my shelf</a></sub>
 </p>
