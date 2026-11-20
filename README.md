@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/vedagwekar/vedagwekar/blob/main/resume.pdf"><img src="assets/header.svg" alt="looking for summer 2027 co-ops · resume"></a>
+  <a href="https://github.com/vedagwekar/vedagwekar/blob/main/resume.pdf"><img src="assets/header-2.svg" alt="looking for summer 2027 co-ops · resume"></a>
 </p>
 
 <p align="center">
@@ -13,5 +13,7 @@
 </p>
 
 <p align="center">
-  <sub>reading recs: <i>thus spoke zarathustra</i> · <i>the count of monte cristo</i> · more on <a href="https://vedagwekar.com/shelf">my shelf</a></sub>
+  <b>reading recs</b><br>
+  <i>thus spoke zarathustra</i>, nietzsche · <i>the count of monte cristo</i>, dumas<br>
+  more on <a href="https://vedagwekar.com/shelf">my shelf</a>
 </p>

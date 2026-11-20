@@ -23,13 +23,11 @@ css = (typo.face("geist", LINE + LINK_TEXT) + f".sans{{font-family:{typo.SANS}}}
 svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" '
        f'role="img" aria-label="{escape(LINE)}. {escape(LINK_TEXT)}">'
        f"<style>{css}</style>"
-       f'<circle cx="{x0 - 14:.1f}" cy="{H / 2 - 1:.1f}" r="3.2" fill="#2da44e">'
-       f'<animate attributeName="opacity" values="1;.35;1" dur="2.4s" repeatCount="indefinite"/></circle>'
        f'<text class="sans ink" x="{x0:.1f}" y="{H / 2 + 4:.1f}" font-size="{SIZE}" font-weight="500" '
        f'letter-spacing="-.1">{escape(LINE)}</text>'
        f'<text class="sans faint" x="{dot_x:.1f}" y="{H / 2 + 4:.1f}" font-size="{SIZE}" text-anchor="middle">·</text>'
        f'<text class="sans mute" x="{x2:.1f}" y="{H / 2 + 4:.1f}" font-size="{SIZE}">{escape(LINK_TEXT)}</text>'
        f'<line class="rule" x1="{x2:.1f}" y1="{H / 2 + 8:.1f}" x2="{x2 + w2:.1f}" y2="{H / 2 + 8:.1f}" stroke-width="1"/>'
        "</svg>")
-open(os.path.join(typo.ROOT, "assets", "header.svg"), "w").write(svg)
-print("assets/header.svg", len(svg) // 1024, "KB")
+open(os.path.join(typo.ROOT, "assets", "header-2.svg"), "w").write(svg)
+print("assets/header-2.svg", len(svg) // 1024, "KB")

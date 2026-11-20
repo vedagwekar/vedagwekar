@@ -149,7 +149,7 @@ LX, TOP = 24, 70
 gap = min(44, (H - 120 - TOP) / max(1, len(placed) - 1))
 for k, (d, i, mon, text) in enumerate(placed, 1):
     ly = TOP + (k - 1) * gap
-    n = f"{k:02d}"
+    n = f"{len(placed) - k + 1:02d}"          # oldest is 01 at the bottom, newest on top
     t0 = DRAW * i / N + 0.2
     a = ang(i)
     near = max(bar_len(counts[j]) for j in range(max(0, i - 5), min(N, i + 6)))
