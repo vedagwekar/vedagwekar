@@ -8,8 +8,7 @@
 
 2026-11-22 | built squint (hackwestern 13)
 2026-11-12 | built homeward
-2026-11-06 | joined warg
-2026-09-20 | won the ollon challenge at formulatech hacks
+2026-09-20 | won the ollon track @ formulatech hacks
 2026-09-03 | moved to waterloo
 2026-06-08 | started cetr index
 2026-06-20 | graduated high school
