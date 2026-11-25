@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/year-202611251759.svg" alt="ved agwekar: my year, one line per day of commits, annotated">
+  <img src="assets/year-202611252343.svg" alt="ved agwekar: my year, one line per day of commits, annotated">
 </p>
 
 <p align="center">
