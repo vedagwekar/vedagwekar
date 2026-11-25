@@ -62,8 +62,15 @@ def idx(d):
     return (d - START).days
 
 
-def bar_len(c):
+ROOM = min(CY, H - CY - 40) - R0 - 24      # space for the longest bar plus its number
+
+
+def raw_len(c):
     return 3 if c == 0 else 7 + 19 * math.log2(1 + c)
+
+
+def bar_len(c):
+    return raw_len(c) * SCALE
 
 
 def level(c, mx):
@@ -119,6 +126,7 @@ def load_events():
 
 body = []
 mx = max(counts)
+SCALE = min(1.0, ROOM / raw_len(mx))   # busy days never push the drawing off the image
 
 # ── milestones: newest at the top ────────────────────────────────
 MAX_LABELS = 7
